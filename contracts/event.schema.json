@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dg-soc/event.schema.json",
+  "title": "Ingest event (adapter -> backend)",
+  "description": "One normalised sensor record. POST /api/ingest/events takes {\"events\": [ ... ]}, max 100 per request. Backend adds event_id and ingested_at.",
+  "type": "object",
+  "required": ["schema_version", "source_record_id", "sensor_id", "event_type", "occurred_at", "src_ip", "lab_run_id", "capture_mode"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "source_record_id": {
+      "type": "string",
+      "maxLength": 128,
+      "description": "Stable per sensor record. Cowrie: sha256 of the raw JSON line. Web: request uuid. Dedup key is (sensor_id, source_record_id)."
+    },
+    "sensor_id": { "enum": ["ssh-decoy-01", "web-decoy-01"] },
+    "event_type": {
+      "enum": [
+        "connection_open",
+        "auth_failure",
+        "auth_success",
+        "command_input",
+        "connection_close",
+        "http_request",
+        "synthetic_file_access",
+        "blocked_request"
+      ]
+    },
+    "occurred_at": { "type": "string", "format": "date-time", "description": "UTC, from the sensor log" },
+    "src_ip": { "type": "string", "format": "ipv4" },
+    "src_port": { "type": ["integer", "null"] },
+    "session_id": { "type": ["string", "null"], "description": "Cowrie session id. Null for web unless a cookie session exists." },
+    "lab_run_id": { "type": "string", "description": "Set once per run, e.g. run-2026-11-01-01" },
+    "capture_mode": { "enum": ["live", "replay"] },
+    "attributes": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "username": { "type": "string", "maxLength": 128 },
+        "password_sha256": { "type": "string", "description": "Never the raw password" },
+        "client_version": { "type": "string", "maxLength": 256 },
+        "command": { "type": "string", "maxLength": 4096 },
+        "method": { "type": "string" },
+        "path": { "type": "string", "maxLength": 4096 },
+        "query_redacted": { "type": "string", "maxLength": 4096, "description": "Query string with any honeytoken or password values replaced by <redacted>" },
+        "user_agent": { "type": "string", "maxLength": 512 },
+        "status_code": { "type": "integer" },
+        "response_class": { "enum": ["normal", "fake_error", "fake_data", "blocked"] },
+        "honeytoken_id": { "type": "string" },
+        "asset_id": { "type": "string" },
+        "size_bytes": { "type": "integer" },
+        "sha256": { "type": "string" },
+        "outcome": { "enum": ["served", "denied", "not_found"] },
+        "block_action_id": { "type": "string" }
+      }
+    }
+  }
+}

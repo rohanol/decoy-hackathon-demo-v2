@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dg-soc/finding.schema.json",
+  "title": "Finding (backend -> frontend)",
+  "type": "object",
+  "required": ["finding_id", "rule_id", "rule_version", "incident_id", "src_ip", "technique_ids", "stage", "label", "limitation", "evidence_event_ids", "created_at"],
+  "additionalProperties": false,
+  "properties": {
+    "finding_id": { "type": "string" },
+    "rule_id": { "enum": ["R01", "R02", "R03", "R04", "R05", "R07", "R08", "R09"] },
+    "rule_version": { "type": "string", "description": "e.g. R01@1" },
+    "incident_id": { "type": "string" },
+    "src_ip": { "type": "string", "format": "ipv4" },
+    "technique_ids": { "type": "array", "items": { "type": "string", "pattern": "^T[0-9]{4}(\\.[0-9]{3})?$" } },
+    "stage": { "enum": ["recon", "credential_attack", "exploit_attempt", "post_access", "data_access", "none"] },
+    "label": { "type": "string", "description": "Plain words, e.g. 'Repeated SSH password guessing (5 failures in 60 s)'" },
+    "limitation": { "type": "string", "description": "What this does not prove, e.g. 'Does not show the account was compromised'" },
+    "evidence_event_ids": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "points": { "type": "integer", "description": "Points this finding contributes now. 0 if its rule already counted or it waits for confirmation." },
+    "pending_confirmation": { "type": "boolean", "description": "True for R09 until the analyst confirms the link" },
+    "web_attack_class": {
+      "type": "array",
+      "items": { "enum": ["sqli", "xss", "lfi", "rfi", "cmd_injection"] },
+      "description": "Only on R07"
+    },
+    "created_at": { "type": "string", "format": "date-time" }
+  }
+}

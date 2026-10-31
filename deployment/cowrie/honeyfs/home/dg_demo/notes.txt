@@ -1,0 +1,7 @@
+todo before friday
+- rotate portal creds after audit (still the old ones below, sorry)
+  portal: http://192.168.77.20:8080/login
+  user: svc_portal
+  pass: DGLAB-Portal-4471
+- customer export is under /download on the portal
+- ask ravi about the backup job, it keeps failing at 2am

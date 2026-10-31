@@ -1,0 +1,26 @@
+# Owner: M3. Change only by PR. Never change weights to make the demo look dramatic.
+version: 1
+cap: 100
+weights:
+  R01: 25   # repeated SSH guessing
+  R02: 15   # command submitted to emulated shell
+  R03: 10   # discovery attempt
+  R04: 30   # synthetic file served
+  R05: 15   # analyst-confirmed cross-decoy link
+  R07: 15   # web attack attempt
+  R08: 5    # web path probing
+  R09: 15   # honeytoken reuse, counts only after confirmation
+needs_confirmation: [R05, R09]
+severity:          # inclusive lower bounds
+  low: 0
+  medium: 25
+  high: 50
+  critical: 80
+low_priority_below: 25   # incidents under this count as noise in the noise counter
+windows:
+  r01_seconds: 60
+  r01_threshold: 5
+  r08_seconds: 60
+  r08_hidden_threshold: 5
+  r08_404_threshold: 10
+  link_candidate_seconds: 300

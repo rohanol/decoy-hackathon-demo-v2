@@ -1,0 +1,55 @@
+# Owner: M2. Decoys only. Backend and frontend run on the host, bound to 127.0.0.1.
+# Run from repo root:  docker compose -f deployment/docker-compose.yml --env-file deployment/lab.env up -d
+#
+# Ports are published on the lab IP only, so nothing is reachable from Wi-Fi or other interfaces.
+# Docker publishes ports through its own iptables chains, so binding to LAB_HOST_IP is what restricts
+# exposure. Do not rely on a host INPUT firewall rule alone.
+
+services:
+  cowrie:
+    image: cowrie/cowrie:latest   # TODO M2: pull before the event, then pin the digest: cowrie/cowrie@sha256:...
+    container_name: dg-cowrie
+    restart: unless-stopped
+    ports:
+      - "${LAB_HOST_IP}:2222:2222"
+    volumes:
+      # Verify these in-container paths against the image you pull:
+      #   docker run --rm --entrypoint ls cowrie/cowrie /cowrie/cowrie-git/etc
+      - ./cowrie/cowrie.cfg:/cowrie/cowrie-git/etc/cowrie.cfg:ro
+      - ./cowrie/userdb.txt:/cowrie/cowrie-git/etc/userdb.txt:ro
+      - ./cowrie/honeyfs/home/dg_demo/notes.txt:/cowrie/cowrie-git/honeyfs/home/dg_demo/notes.txt:ro
+      - ./state/cowrie-log:/cowrie/cowrie-git/var/log/cowrie   # adapter tails cowrie.json here
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    networks: [decoys]
+
+  web-decoy:
+    build: ../decoys/web          # M4 writes decoys/web/Dockerfile
+    container_name: dg-web-decoy
+    restart: unless-stopped
+    ports:
+      - "${LAB_HOST_IP}:8080:8080"
+    environment:
+      SENSOR_ID: web-decoy-01
+      LAB_RUN_ID: ${LAB_RUN_ID}
+      ATTACKER_IPS: ${ATTACKER_IPS}
+      LOG_PATH: /logs/web.json
+      BLOCKLIST_PATH: /state/blocklist.json
+      HONEYTOKENS_PATH: /config/honeytokens.yaml
+    volumes:
+      - ./state/web-log:/logs
+      # A directory mount observes atomic rename updates to blocklist.json.
+      - ./state:/state:ro
+      - ../config/honeytokens.yaml:/config/honeytokens.yaml:ro
+    user: "1000:1000"
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    networks: [decoys]
+
+networks:
+  decoys:
+    internal: false   # needed for published ports; host has no default route during runs, so no egress

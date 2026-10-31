@@ -1,0 +1,23 @@
+# Owner: M4. Values live ONLY in the decoy files listed in placed_in. This file stores sha256 hashes.
+# The adapter (M2) and web decoy (M4) hash every presented password and compare against these.
+# Match -> set attributes.honeytoken_id on the event. Never store the raw value anywhere.
+version: 1
+tokens:
+  - id: tok_portal_01
+    description: Web portal login for svc_portal
+    username: svc_portal
+    value_sha256: 084c235fbf6efc6ab082575c6977c6c7cade5e46a982a9692e2c1e9a8af7a443
+    planted_on: ssh-decoy-01
+    placed_in: "Cowrie fake file /home/dg_demo/notes.txt"
+    valid_on: web-decoy-01
+  - id: tok_backup_01
+    description: SSH login for backup user
+    username: backup
+    value_sha256: aeed687d56b3778fb5b51158ff6005ac65874f3169360258ef18279a6d9751cd
+    planted_on: web-decoy-01
+    placed_in: "Web decoy GET /.env"
+    valid_on: ssh-decoy-01
+# Plain values, for the people writing the decoy files only. Do not copy into code or logs:
+#   tok_portal_01  DGLAB-Portal-4471
+#   tok_backup_01  DGLAB-Bkp-2210
+# Seeded demo login (not a honeytoken): dg_demo / DemoPass-2026

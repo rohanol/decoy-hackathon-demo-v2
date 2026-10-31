@@ -1,0 +1,13 @@
+# M2 Sensors, deployment and response (Vedant)
+
+You own `sensors/`, `deployment/`, `decoys/ssh/`, `decoys/policy/`, `response/`. Read `AGENTS.md`, `contracts/event.schema.json` and `contracts/API.md` first.
+
+Tasks in order:
+1. Network: follow `deployment/LAB_NETWORK.md`. Prove Kali reaches 2222 and that Cowrie logs `src_ip` 192.168.77.10. Do this before the event.
+2. Cowrie: pin the image digest in `deployment/docker-compose.yml`. Verify the mounted paths and `cowrie.cfg` option names against the image. Make `/home/dg_demo/notes.txt` actually appear in `ls`: honeyfs gives file contents, but the file must also exist in the fake filesystem (`fs.pickle`). Use Cowrie's `fsctl` tool to add `/home/dg_demo` and `notes.txt` with the right size, and check where a non-root user lands after login. Check `cat notes.txt` prints the content.
+3. Adapter `sensors/adapter.py`: tail `deployment/state/cowrie-log/cowrie.json` and `deployment/state/web-log/web.json`, keep a byte-offset checkpoint so restarts do not resend, map to `event.schema.json`, POST batches to `/api/ingest/events`, retry on failure. `source_record_id` = sha256 of the raw line. Cowrie mapping: `cowrie.session.connect` → connection_open, `cowrie.login.failed` → auth_failure, `cowrie.login.success` → auth_success, `cowrie.command.input` → command_input, `cowrie.session.closed` → connection_close, `cowrie.client.version` → put `client_version` on the session's next event or a connection_open. Hash presented passwords to `password_sha256`, check against `config/honeytokens.yaml`, set `honeytoken_id` on a match, drop the raw password. **H4 target: SSH login from Kali reaches the backend.** Share 20 real sanitised lines with Rohan as early as possible.
+4. Policy `decoys/policy/policy.py`: `check(ip) -> action_id | None` reading `blocklist.json` (format in `contracts/API.md`), ignoring expired entries. No dependencies, so the web decoy can import it.
+5. Response `response/router.py`: FastAPI `APIRouter` with the routes in `contracts/API.md`, mounted by Rohan at `/api/response`. Preview (valid 60 s), apply (reason + confirm), revoke, list. Write `blocklist.json` atomically. Allowed targets are only `ATTACKER_IPS` from `deployment/lab.env`. Mark an action verified when a `blocked_request` with its `block_action_id` is ingested (Rohan calls your `on_event(event)` hook). Expire at TTL. Tests: wrong IP rejected, expired preview rejected, revoke restores access.
+6. `deployment/preflight.sh` all PASS on the demo laptop.
+
+Never: privileged containers, Docker socket mounts, Cowrie proxy mode, raw passwords in any log or DB, blocking 192.168.77.20, 127.0.0.1 or a range.

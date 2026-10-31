@@ -1,0 +1,44 @@
+# Owner: M4. Backend (M3) loads this for R07 and R08.
+# Apply to the URL-decoded path + query, and the decoded form body for POSTs. Decode twice
+# (catches %2527 style double encoding). Match case-insensitively.
+# Positive and negative test strings: contracts/examples/payloads.json
+version: 1
+classes:
+  sqli:
+    - "'\\s*(or|and)\\s+['\"\\d]"
+    - "\\bunion\\b.{0,40}\\bselect\\b"
+    - "(--|#|/\\*)\\s*$"
+    - "\\b(sleep|benchmark|pg_sleep)\\s*\\("
+    - ";\\s*(drop|insert|update|delete)\\b"
+    - "'\\s*;"
+  xss:
+    - "<\\s*script\\b"
+    - "\\bon(error|load|mouseover|focus)\\s*="
+    - "javascript\\s*:"
+    - "<\\s*(img|svg|iframe)\\b[^>]*>"
+  lfi:
+    - "(\\.\\./|\\.\\.\\\\){2,}"
+    - "/etc/(passwd|shadow|hosts)"
+    - "\\b(c:\\\\windows|boot\\.ini|win\\.ini)\\b"
+    - "php://(filter|input)"
+  rfi:
+    - "(file|page|include|url|path)=\\s*(https?|ftp)://"
+  cmd_injection:
+    - "[;&|]\\s*(cat|ls|id|whoami|uname|wget|curl|nc|bash|sh)\\b"
+    - "`[^`]+`"
+    - "\\$\\([^)]+\\)"
+hidden_paths:
+  - /admin
+  - /administrator
+  - /.env
+  - /.git/HEAD
+  - /.git/config
+  - /backup.zip
+  - /backup
+  - /phpmyadmin
+  - /wp-admin
+  - /wp-login.php
+  - /server-status
+  - /config.php
+  - /db.sql
+  - /api/debug

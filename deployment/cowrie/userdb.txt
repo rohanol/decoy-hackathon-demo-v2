@@ -1,0 +1,5 @@
+# Owner: M2. Format user:x:password. Only these logins succeed.
+# root is denied for every password so brute force against root just produces failures.
+root:x:!*
+dg_demo:x:DemoPass-2026
+backup:x:DGLAB-Bkp-2210
